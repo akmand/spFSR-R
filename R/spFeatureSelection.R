@@ -1,0 +1,100 @@
+#' SPSA-FSR for Feature Selection and Ranking
+#'
+#' This function searches for the best performing features and rank the feature importance by implementing simultaneous perturbation stochastic approximation (SPSA) algorithm given a task and a wrapper. The task and wrapper are defined using the \pkg{mlr3} package.
+#'
+#' @param task A \code{task} object created using \pkg{mlr3} package. It must be either a \code{ClassifTask} or \code{RegrTask} object.
+#' @param wrapper A \code{Learner} object created using \pkg{mlr3} package. Multiple learners object is not supported.
+#' @param scoring A performance measure within the \pkg{mlr3} package supported by the \code{task}.
+#' @param ... Additional arguments. For more details, see \link[spFSR]{spFSR.default}.
+#'
+#' @examples
+#' library(mlr3)          # load the mlr3 package
+#' library(mlr3learners) # load the mlr3learners package
+#'
+#' task    <- tsk('iris') # define task
+#' wrapper <- lrn('classif.rpart')                # define wrapper
+#' measure <- msr('classif.acc')
+#'
+#' # run spsa
+#' spsaMod <- spFeatureSelection( task = task,
+#'                                wrapper = wrapper,
+#'                                scoring = measure,
+#'                                num.features.selected = 3,
+#'                                n.jobs = 1,
+#'                                iters.max = 2,
+#'                                num.grad.avg = 1)
+#'
+#'
+#' # obtain summary
+#' summary(spsaMod)
+#'
+#' # plot spsaMod
+#' plot(spsaMod)                                # simplest plot
+#' plot(spsaMod, errorBar = TRUE)               # plot with error bars
+#' plot(spsaMod, errorBar = TRUE, se = TRUE)    # plot with error bars based on se
+#' plot(spsaMod, errorBar = TRUE, annotateBest = TRUE)  # annotate best value
+#' plot(spsaMod, errorBar = TRUE, ylab = 'Acc measure', type = 'o')
+#'
+#' # obtain the wrapped model with the best performing features
+#' bestMod <- getBestModel(spsaMod)
+#'
+#' # predict using the best mod
+#' pred <- bestMod$predict( task = spsaMod$task.spfs )
+#'
+#' # Obtain confusion matrix
+#' pred$confusion
+#'
+#' # Get the importance ranks of best performing features
+#' getImportance(spsaMod)
+#' plotImportance(spsaMod)
+#'
+#'
+#' @return \code{spFSR} returns an object of class "spFSR". An object of class "spFSR" consists of the following:
+#'
+#' \item{task.spfs}{An \pkg{mlr3} package \code{tsk} object defined on the best performing features.}
+#' \item{wrapper}{An \pkg{mlr3} package \code{lrn} object, default is random forest.}
+#' \item{scoring}{An \pkg{mlr3} package \code{msr} object as specified by the user.}
+#' \item{param best.model}{An \pkg{mlr3} package \code{model} object trained by the \code{wrapper} using \code{task.spfs}.}
+#' \item{iter.results}{A \code{data.frame} object containing detailed information on each iteration.}
+#' \item{features}{Names of the best performing features.}
+#' \item{num.features}{The number of best performing features.}
+#' \item{importance}{A vector of importance ranks of the best performing features.}
+#' \item{total.iters}{The total number of iterations executed.}
+#' \item{best.iter}{The iteration where the best performing feature subset was encountered.}
+#' \item{best.value}{The best measure value encountered during execution.}
+#' \item{best.std}{The standard deviation corresponding to the best measure value encountered.}
+#' \item{run.time}{Total run time in minutes}
+#' \item{results}{Dataframe with boolean of selected features, names and measure}
+#' \item{call}{Call}
+#'
+#'
+#' @references David V. Akman et al. (2022) k-best feature selection and ranking via stochastic approximation,  \emph{Expert Systems with Applications}, \bold{Vol. 213}. See \doi{10.1016/j.eswa.2022.118864}
+#' @references G.F.A Yeo and V. Aksakalli (2021) A stochastic approximation approach to simultaneous feature weighting and selection for nearest neighbour learners,  \emph{Expert Systems with Applications}, \bold{Vol. 185}. See \doi{10.1016/j.eswa.2021.115671}
+
+#' @import stats
+#' @import parallel
+#' @import tictoc
+#' @import mlr3
+#' @import mlr3learners
+#' @import mlr3pipelines
+#'
+#'
+#' @rdname spFeatureSelection
+#'
+#' @seealso \link[mlr3]{tsk}, \link[mlr3]{lrn}, \link[mlr3]{msr} and \link[spFSR]{spFSR.default}.
+#' @export
+spFeatureSelection <- function(
+  task,
+  wrapper = NULL,
+  scoring = NULL,
+  ...
+){
+
+  model <- spFSR.default(
+    task = task,
+    wrapper = wrapper,
+    scoring = scoring,
+    ...
+  )
+  model
+}

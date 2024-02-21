@@ -20,7 +20,7 @@ affiliations:
    index: 1
 date: 21 February 2024
 
-bibliography: joss_refs.bib
+bibliography: paper.bib
 
 ---
 
